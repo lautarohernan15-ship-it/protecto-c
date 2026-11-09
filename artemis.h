@@ -3,31 +3,31 @@
 #ifndef ARTEMIS_H
 #define ARTEMIS_H
 
-#define GRAVEDAD       9.80      /* m/s^2 (valor del enunciado) */
-#define KMH_POR_MS     3.6       /* para pasar de m/s a km/h    */
+#define GRAVEDAD       9.80      
+#define KMH_POR_MS     3.6       
 
-#define MASA_NOM       10400.0   /* kg               */
-#define VI_NOM         11000.0   /* m/s              */
-#define HI_NOM         120000.0  /* m                */
-#define VF_NOM         25.0      /* m/s              */
-#define HF_NOM         2500.0    /* m                */
-#define VIMPACTO_NOM   8.0       /* m/s              */
-#define DT_NOM         400.0     /* s                */
-#define PROF_NOM       1.50      /* m                */
+#define MASA_NOM       10400.0   
+#define VI_NOM         11000.0  
+#define HI_NOM         120000.0  
+#define VF_NOM         25.0      
+#define HF_NOM         2500.0    
+#define VIMPACTO_NOM   8.0       
+#define DT_NOM         400.0    
+#define PROF_NOM       1.50      
 
-#define GAMMA_MIN      5.5       /* grados */
-#define GAMMA_MAX      7.0       /* grados */
+#define GAMMA_MIN      5.5       
+#define GAMMA_MAX      7.0       
 
-#define LIMITE_G       5.0       /* maximo de g que soporta la tripulacion */
-#define LIMITE_TIEMPO  600.0     /* segundos maximos que aguanta el escudo */
-#define LIMITE_PESOS   5.0       /* fuerza maxima del agua (veces el peso) */
+#define LIMITE_G       5.0       
+#define LIMITE_TIEMPO  600.0     
+#define LIMITE_PESOS   5.0       
 
-#define N_TURNOS       10        /* turnos de la tabla de frenado */
-#define PUNTOS_FASE    25        /* 4 fases x 25 = 100 puntos     */
+#define N_TURNOS       10        
+#define PUNTOS_FASE    25        
 
 #define ANGULO_SEGURO    0
-#define ANGULO_EMPINADO  1       /* gamma > 7,0  */
-#define ANGULO_RASANTE   2       /* gamma < 5,5  */
+#define ANGULO_EMPINADO  1       
+#define ANGULO_RASANTE   2       
 
 #define EXITO            0
 #define FALLO_EMPINADO   1
