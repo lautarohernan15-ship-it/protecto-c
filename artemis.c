@@ -161,3 +161,37 @@ void mostrarDatos(Mision *m)
     printf("  Duracion del frenado ..... %.1f s\n", m->tiempoFrenado);
     printf("  Hundimiento en el agua ... %.2f m\n", m->profundidad);
 }
+void mostrarAnalisis(Mision *m)
+{
+    double gamma;
+    int clase;
+
+    calcularResultados(m);
+
+    printf("\n=========== ANALISIS ANALITICO ===========\n");
+
+    printf("\na) Trabajo de la fuerza de rozamiento\n");
+    printf("   K inicial = 1/2*m*vi^2 = %.4e J\n", m->kInicial);
+    printf("   K final   = 1/2*m*vf^2 = %.4e J\n", m->kFinal);
+    printf("   delta K   = %.4e J\n", m->deltaK);
+    printf("   W peso    = m*g*(hi-hf) = %.4e J\n", m->trabajoPeso);
+    printf("   W roz = delta K - W peso = %.4e J\n", m->trabajoRoz);
+    printf("   (es negativo: el aire le quita energia a la capsula)\n");
+
+    printf("\nb) Desaceleracion media (fase de %.0f s)\n", m->tiempoFrenado);
+    printf("   a = (vi - vf) / t = %.3f m/s^2\n", m->aMedia);
+    printf("   a = %.3f veces g\n", m->aMediaG);
+
+    printf("\nc) Fuerza promedio del agua en el amerizaje\n");
+    printf("   Peso = m*g = %.1f N\n", m->peso);
+    printf("   F = m*g + (1/2*m*v^2)/d = %.1f N\n", m->fProm);
+    printf("   F = %.3f veces el peso de la nave\n", m->fPromPesos);
+
+    printf("\nd) Angulo de reingreso\n");
+    explicarAngulo(ANGULO_EMPINADO);
+    explicarAngulo(ANGULO_RASANTE);
+    printf("\n  Pruebe un angulo:\n");
+    gamma = leerReal("Angulo gamma (grados)", 0.1, 90.0);
+    clase = clasificarAngulo(gamma);
+    explicarAngulo(clase);
+}
