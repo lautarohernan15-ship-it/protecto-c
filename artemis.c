@@ -119,3 +119,45 @@ int clasificarAngulo(double gamma)
     }
     return clase;
 }
+void cargarDatosNominales(Mision *m)
+{
+    m->masa          = MASA_NOM;
+    m->velInicial    = VI_NOM;
+    m->altInicial    = HI_NOM;
+    m->velParacaidas = VF_NOM;
+    m->altParacaidas = HF_NOM;
+    m->velImpacto    = VIMPACTO_NOM;
+    m->tiempoFrenado = DT_NOM;
+    m->profundidad   = PROF_NOM;
+    m->gamma         = 6.0;
+    m->estado        = EXITO;
+    m->puntaje       = 0;
+}
+
+void ingresarDatosPropios(Mision *m)
+{
+    printf("\n--- INGRESO DE DATOS PROPIOS (unidades del SI) ---\n");
+    m->masa          = leerReal("Masa (kg)", 1000.0, 100000.0);
+    m->velInicial    = leerReal("Velocidad de reingreso vi (m/s)", 1000.0, 15000.0);
+    m->altInicial    = leerReal("Altura de reingreso hi (m)", 10000.0, 200000.0);
+    m->altParacaidas = leerReal("Altura de paracaidas hf (m)", 100.0, m->altInicial - 1);
+    m->velParacaidas = leerReal("Velocidad al abrir paracaidas vf (m/s)", 1.0, m->velInicial - 1);
+    m->velImpacto    = leerReal("Velocidad de impacto (m/s)", 0.1, m->velParacaidas);
+    m->tiempoFrenado = leerReal("Duracion del frenado (s)", 10.0, 3600.0);
+    m->profundidad   = leerReal("Hundimiento en el agua d (m)", 0.1, 10.0);
+    printf("\n  Datos cargados correctamente.\n");
+}
+
+void mostrarDatos(Mision *m)
+{
+    printf("\n--- DATOS ACTUALES DE LA MISION ---\n");
+    printf("  Masa ..................... %.1f kg\n", m->masa);
+    printf("  Velocidad de reingreso ... %.1f m/s (%.0f km/h)\n",
+           m->velInicial, m->velInicial * KMH_POR_MS);
+    printf("  Altura de reingreso ...... %.1f m\n", m->altInicial);
+    printf("  Velocidad paracaidas ..... %.1f m/s\n", m->velParacaidas);
+    printf("  Altura paracaidas ........ %.1f m\n", m->altParacaidas);
+    printf("  Velocidad de impacto ..... %.1f m/s\n", m->velImpacto);
+    printf("  Duracion del frenado ..... %.1f s\n", m->tiempoFrenado);
+    printf("  Hundimiento en el agua ... %.2f m\n", m->profundidad);
+}
