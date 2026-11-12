@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>     
+#include <Xstdlib.h>     
 #include "artemis.h"
 
 
@@ -119,6 +119,28 @@ int clasificarAngulo(double gamma)
     }
     return clase;
 }
+void explicarAngulo(int clase)
+
+{
+    if (clase == ANGULO_EMPINADO) {
+        printf("  gamma > %.1f grados: DESACELERACION EXCESIVA\n", GAMMA_MAX);
+        printf("   - La capsula entra muy rapido a capas densas de aire.\n");
+        printf("   - La fuerza de rozamiento crece mucho y la energia cinetica\n");
+        printf("     se disipa en muy poco tiempo.\n");
+        printf("   - La tripulacion soportaria demasiados g y el escudo termico\n");
+        printf("     podria sobrecalentarse.\n");
+    } else if (clase == ANGULO_RASANTE) {
+        printf("  gamma < %.1f grados: REBOTE ATMOSFERICO\n", GAMMA_MIN);
+        printf("   - La capsula roza la atmosfera sin penetrarla lo suficiente.\n");
+        printf("   - El trabajo del rozamiento no alcanza para frenarla.\n");
+        printf("   - Rebota hacia el espacio con mucha energia cinetica y no\n");
+        printf("     puede volver a la Tierra de forma segura.\n");
+    } else {
+        printf("  %.1f <= gamma <= %.1f grados: VENTANA SEGURA\n", GAMMA_MIN, GAMMA_MAX);
+        printf("   - La desaceleracion es soportable y la capsula no rebota.\n");
+    }
+}
+
 void cargarDatosNominales(Mision *m)
 {
     m->masa          = MASA_NOM;
