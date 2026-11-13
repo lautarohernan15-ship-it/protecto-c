@@ -265,3 +265,31 @@ int faseFrenado(Mision *m)
 
     m->tiempoFrenado = leerReal("Duracion del frenado (s)", 10.0, 3600.0);
     calcularResultados(m);
+
+        for (i = 0; i < N_TURNOS; i++) {
+        t = m->tiempoFrenado * (i + 1) / N_TURNOS;
+        velocidad[i] = m->velInicial - m->aMedia * t;
+    }
+
+    printf("\n  Desaceleracion media: %.3f m/s^2 = %.3f g\n", m->aMedia, m->aMediaG);
+    printf("\n  Turno | t (s)  | v (m/s)  | v (km/h)  | K (J)\n");
+    printf("  ------------------------------------------------------\n");
+    for (i = 0; i < N_TURNOS; i++) {
+        t = m->tiempoFrenado * (i + 1) / N_TURNOS;
+        printf("  %4d  | %6.1f | %8.1f | %9.1f | %.3e\n", i + 1, t, velocidad[i],
+               velocidad[i] * KMH_POR_MS, energiaCinetica(m->masa, velocidad[i]));
+    }
+
+    if (m->aMediaG > LIMITE_G) {
+        printf("\n  [!] La desaceleracion supera el limite de la tripulacion.\n");
+        m->estado = FALLO_G;
+    } else if (m->tiempoFrenado > LIMITE_TIEMPO) {
+        printf("\n  [!] El escudo termico no soporta una exposicion tan larga.\n");
+        m->estado = FALLO_ESCUDO;
+    } else {
+        printf("\n  Fase 2 superada.\n");
+        m->puntaje = m->puntaje + PUNTOS_FASE;
+        superada = 1;
+    }
+    return superada;
+}
