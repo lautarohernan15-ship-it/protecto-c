@@ -405,3 +405,16 @@ void mostrarReporte(Mision *m)
     printf("   - Fuerza promedio del agua: %.1f N (%.3f veces el peso)\n",
            m->fProm, m->fPromPesos);
 }
+
+void mostrarReglas(void)
+{
+    printf("\n=========== REGLAS DEL JUEGO ===========\n");
+    printf("  El modulo Orion reingresa a la atmosfera a 11000 m/s (Mach 32)\n");
+    printf("  desde 120 km de altura y debe amerizar en el Pacifico.\n\n");
+    printf("  Son 4 fases de %d puntos. Si una falla, la mision termina.\n", PUNTOS_FASE);
+    printf("   1. Angulo: entre %.1f y %.1f grados.\n", GAMMA_MIN, GAMMA_MAX);
+    printf("   2. Frenado: maximo %.1f g y no mas de %.0f s.\n", LIMITE_G, LIMITE_TIEMPO);
+    printf("   3. Paracaidas: se simula cuantos abren (afecta la velocidad de impacto).\n");
+    printf("   4. Amerizaje: la fuerza del agua no debe pasar %.1f veces el peso.\n", LIMITE_PESOS);
+    printf("\n  Principio fisico: W_total = delta K (Trabajo y Energia).\n");
+}
