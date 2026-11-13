@@ -293,3 +293,49 @@ int faseFrenado(Mision *m)
     }
     return superada;
 }
+
+int faseParacaidas(Mision *m)
+{
+    
+    double factor[4] = {0.0, 1.75, 1.25, 1.00};
+    int abiertos;
+
+    printf("\n========== FASE 3/4: PARACAIDAS ==========\n");
+    printf("  A %.0f m de altura y %.1f m/s se despliegan los paracaidas.\n",
+           m->altParacaidas, m->velParacaidas);
+    printf("  Contingencia: cuantos paracaidas principales abren bien?\n");
+    printf("  (3 = todo normal, menos = emergencia)\n\n");
+
+    abiertos = leerEntero("Paracaidas operativos", 1, 3);
+    m->velImpacto = m->velImpacto * factor[abiertos];
+
+    printf("\n  Velocidad de impacto prevista: %.2f m/s (%.1f km/h)\n",
+           m->velImpacto, m->velImpacto * KMH_POR_MS);
+    printf("  Fase 3 superada.\n");
+    m->puntaje = m->puntaje + PUNTOS_FASE;
+    return 1;
+}
+
+
+int faseAmerizaje(Mision *m)
+{
+    int superada = 0;
+
+    calcularResultados(m);
+
+    printf("\n========== FASE 4/4: AMERIZAJE ==========\n");
+    printf("  La capsula toca el agua a %.2f m/s y se hunde %.2f m.\n\n",
+           m->velImpacto, m->profundidad);
+    printf("  Fuerza promedio del agua: %.1f N\n", m->fProm);
+    printf("  Equivale a %.3f veces el peso (limite: %.1f)\n", m->fPromPesos, LIMITE_PESOS);
+
+    if (m->fPromPesos > LIMITE_PESOS) {
+        printf("\n  [!] La fuerza del agua rompe la estructura de la capsula.\n");
+        m->estado = FALLO_IMPACTO;
+    } else {
+        printf("\n  Fase 4 superada.\n");
+        m->puntaje = m->puntaje + PUNTOS_FASE;
+        superada = 1;
+    }
+    return superada;
+}
