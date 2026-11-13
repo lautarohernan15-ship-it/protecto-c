@@ -217,3 +217,51 @@ void mostrarAnalisis(Mision *m)
     clase = clasificarAngulo(gamma);
     explicarAngulo(clase);
 }
+
+int faseAngulo(Mision *m)
+{
+    int clase;
+    int superada = 0;
+
+    printf("\n========== FASE 1/4: ENTRADA A LA ATMOSFERA ==========\n");
+    printf("  Orion llega a %.0f km de altura a %.0f m/s (%.0f km/h).\n",
+           m->altInicial / 1000.0, m->velInicial, m->velInicial * KMH_POR_MS);
+    printf("  Ventana segura: entre %.1f y %.1f grados.\n\n", GAMMA_MIN, GAMMA_MAX);
+
+    m->gamma = leerReal("Angulo de reingreso gamma (grados)", 0.1, 90.0);
+    clase = clasificarAngulo(m->gamma);
+    printf("\n");
+    explicarAngulo(clase);
+
+    if (clase == ANGULO_SEGURO) {
+        m->puntaje = m->puntaje + PUNTOS_FASE;
+        superada = 1;
+    } else if (clase == ANGULO_EMPINADO) {
+        m->estado = FALLO_EMPINADO;
+    } else {
+        m->estado = FALLO_REBOTE;
+    }
+    return superada;
+}
+
+
+F2
+
+int faseFrenado(Mision *m)
+{
+    double velocidad[N_TURNOS];
+    double tiempoMin;
+    double t;
+    int i;
+    int superada = 0;
+
+    tiempoMin = (m->velInicial - m->velParacaidas) / (LIMITE_G * GRAVEDAD);
+
+    printf("\n========== FASE 2/4: FRENADO AERODINAMICO ==========\n");
+    printf("  Usted elige cuanto dura la fase de mayor desaceleracion:\n");
+    printf("   - Muy corta: la tripulacion supera los %.1f g.\n", LIMITE_G);
+    printf("   - Muy larga: el escudo termico se sobrecarga (max %.0f s).\n", LIMITE_TIEMPO);
+    printf("   - Rango util para estos datos: %.0f s a %.0f s.\n\n", tiempoMin, LIMITE_TIEMPO);
+
+    m->tiempoFrenado = leerReal("Duracion del frenado (s)", 10.0, 3600.0);
+    calcularResultados(m);
