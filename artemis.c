@@ -339,3 +339,69 @@ int faseAmerizaje(Mision *m)
     }
     return superada;
 }
+
+void jugarMision(Mision *datos)
+{
+    Mision partida;    /* copia de trabajo: asi no se pisan los datos originales */
+    int superada;
+
+    partida = *datos;
+    partida.estado  = EXITO;
+    partida.puntaje = 0;
+
+    printf("\n############ INICIO DE MISION: REINGRESO DE ORION ############\n");
+    printf("  Usted es el director de vuelo. Supere las 4 fases.\n");
+
+    superada = faseAngulo(&partida);
+    if (superada == 1) {
+        superada = faseFrenado(&partida);
+    }
+    if (superada == 1) {
+        superada = faseParacaidas(&partida);
+    }
+    if (superada == 1) {
+        superada = faseAmerizaje(&partida);
+    }
+
+    calcularResultados(&partida);
+    mostrarReporte(&partida);
+}
+
+void mostrarReporte(Mision *m)
+{
+    printf("\n=========== REPORTE FINAL ===========\n");
+
+    switch (m->estado) {
+        case EXITO:          printf("  Resultado: MISION EXITOSA, amerizaje seguro\n"); break;
+        case FALLO_EMPINADO: printf("  Resultado: FALLO, reingreso demasiado empinado\n"); break;
+        case FALLO_REBOTE:   printf("  Resultado: FALLO, rebote atmosferico\n"); break;
+        case FALLO_G:        printf("  Resultado: FALLO, desaceleracion excesiva\n"); break;
+        case FALLO_ESCUDO:   printf("  Resultado: FALLO, escudo termico sobrecargado\n"); break;
+        case FALLO_IMPACTO:  printf("  Resultado: FALLO, impacto estructural\n"); break;
+    }
+
+    printf("  Fases superadas: %d de 4\n", m->puntaje / PUNTOS_FASE);
+    printf("  Puntaje: %d / 100\n", m->puntaje);
+
+    if (m->puntaje == 100) {
+        printf("  Calificacion: COMANDANTE ARTEMIS\n");
+    } else if (m->puntaje >= 75) {
+        printf("  Calificacion: Piloto de reingreso\n");
+    } else if (m->puntaje >= 50) {
+        printf("  Calificacion: Ingeniero de vuelo\n");
+    } else if (m->puntaje >= 25) {
+        printf("  Calificacion: Cadete\n");
+    } else {
+        printf("  Calificacion: Aspirante\n");
+    }
+
+    printf("\n  Datos usados:\n");
+    printf("   - Angulo de reingreso: %.2f grados\n", m->gamma);
+    printf("   - Duracion del frenado: %.1f s\n", m->tiempoFrenado);
+    printf("   - Velocidad de impacto: %.2f m/s\n", m->velImpacto);
+    printf("\n  Resultados fisicos:\n");
+    printf("   - Trabajo del rozamiento: %.4e J\n", m->trabajoRoz);
+    printf("   - Desaceleracion media: %.3f m/s^2 (%.3f g)\n", m->aMedia, m->aMediaG);
+    printf("   - Fuerza promedio del agua: %.1f N (%.3f veces el peso)\n",
+           m->fProm, m->fPromPesos);
+}
