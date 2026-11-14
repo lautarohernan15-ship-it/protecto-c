@@ -43,4 +43,27 @@ gcc -Wall -Wextra -std=c99 -pedantic main.c artemis.c -o artemis4
 (o simplemente `make`)
 
 # e) Uso de Inteligencia Artificial
-proximamente.
+Las inteligencias artificiales utilizadas fueron: Gemini IA y Claude IA
+
+Comprender cómo estructurar el proyecto en C en varios archivos (.h y .c) y el diseño general.
+
+Utilizado: Claude
+
+Prompt:
+"Hola, en base al trabajo mencionado nos gustaria tu ayuda. Estamos diseñando un simulador en C para el escenario 4 de Artemis (reingreso y amerizaje). Necesitamos modularizar el programa separando la
+lógica.¿Cómo nos sugieres estructurar la cabecera y el paso de punteros?".
+
+Para la revisión de fragmentos de código antes de hacer cada commit al repositorio de GitHub:
+
+Utilizado: Claude
+
+Ejemplos de Prompts utilizados:
+"Revisa esta función leerEntero que usa scanf y getchar para limpiar el búfer. ¿Qué pasa si el usuario ingresa un símbolo especial o letras? ¿Hay riesgo de bucle infinito?"
+
+"Verifica si el cálculo del Teorema del Trabajo y la Energía (W_roz = deltaK - W_peso) está expresado correctamente en unidades del SI y si los signos algebraicos de la gravedad y el desnivel son coherentes".
+
+Ordenamiento final del código, redacción clara de los comentarios dentro de las funciones y maquetación de la documentación técnica.
+
+UtilizadO: Gemini.
+
+"Necesitamos que nos ayudes con los comentarios sobre que hace cada estructura y la separacion de las mismas."
