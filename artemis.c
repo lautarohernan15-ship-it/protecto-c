@@ -1,28 +1,42 @@
+/*
+ * artemis.c
+ * Implementacion del simulador: validacion de datos, calculos fisicos
+ * y las 4 fases de la mision.
+ *
+ * Fisica: Teorema del Trabajo y la Energia
+ *         W_total = W_peso + W_rozamiento = variacion de energia cinetica
+ */
 #include <stdio.h>
-#include <Xstdlib.h>     
+#include <stdlib.h>      /* para exit() */
 #include "artemis.h"
 
+/* =====================================================================
+ *  1) LECTURA DE DATOS CON VALIDACION
+ *  Se repite la pregunta (do-while) hasta que el dato sea valido.
+ * ===================================================================== */
 
-// Pide un numero entero entre minimo y maximo
+/* Pide un numero entero entre minimo y maximo */
 int leerEntero(char mensaje[], int minimo, int maximo)
 {
-    int valor;
-    int leidos;
-    int lineaLimpia;
-    int c;
-    int valido;
+    int valor;         /* numero que escribe el usuario                  */
+    int leidos;        /* scanf devuelve cuantos datos pudo leer (1 o 0) */
+    int lineaLimpia;   /* 1 si despues del numero no habia nada mas      */
+    int c;             /* caracter que leemos con getchar                */
+    int valido;        /* 1 cuando el dato ya es correcto                */
 
     do {
         valido = 0;
         printf("  %s [%d a %d]: ", mensaje, minimo, maximo);
         leidos = scanf("%d", &valor);
 
+        /* Si se cierra la entrada (EOF) salimos, si no el bucle seria infinito */
         if (leidos == EOF) {
             printf("\n  Se cerro la entrada de datos. Fin del programa.\n");
             exit(1);
         }
 
-        
+        /* Limpiamos el buffer: leemos con getchar hasta el ENTER.
+         * Si encontramos algo antes del ENTER (ej: "5abc"), el dato no sirve. */
         lineaLimpia = 1;
         c = getchar();
         while (c != '\n' && c != EOF) {
@@ -42,6 +56,8 @@ int leerEntero(char mensaje[], int minimo, int maximo)
     return valor;
 }
 
+/* Pide un numero real (con punto decimal) entre minimo y maximo */
+double leerReal(char mensaje[], double minimo, double maximo)
 {
     double valor;
     int leidos;
@@ -69,6 +85,7 @@ int leerEntero(char mensaje[], int minimo, int maximo)
         if (leidos != 1 || lineaLimpia == 0) {
             printf("  [ERROR] Ingrese solo un numero (use punto decimal, ej: 6.5).\n");
         } else if (!(valor >= minimo && valor <= maximo)) {
+            /* Se escribe asi (con !) para que tambien rechace "nan" */
             printf("  [ERROR] Valor fuera de rango.\n");
         } else {
             valido = 1;
@@ -76,17 +93,87 @@ int leerEntero(char mensaje[], int minimo, int maximo)
     } while (valido == 0);
 
     return valor;
+}
+
+/* =====================================================================
+ *  2) DATOS DE LA MISION
+ * ===================================================================== */
+
+/* Carga los valores del enunciado. 'm' es un puntero: modifica la variable original */
+void cargarDatosNominales(Mision *m)
+{
+    m->masa          = MASA_NOM;
+    m->velInicial    = VI_NOM;
+    m->altInicial    = HI_NOM;
+    m->velParacaidas = VF_NOM;
+    m->altParacaidas = HF_NOM;
+    m->velImpacto    = VIMPACTO_NOM;
+    m->tiempoFrenado = DT_NOM;
+    m->profundidad   = PROF_NOM;
+    m->gamma         = 6.0;
+    m->estado        = EXITO;
+    m->puntaje       = 0;
+}
+
+/* El usuario escribe sus propios datos. Cada dato depende del anterior
+ * para que no haya valores absurdos (ej: velocidad de impacto mayor a la inicial). */
+void ingresarDatosPropios(Mision *m)
+{
+    printf("\n--- INGRESO DE DATOS PROPIOS (unidades del SI) ---\n");
+    m->masa          = leerReal("Masa (kg)", 1000.0, 100000.0);
+    m->velInicial    = leerReal("Velocidad de reingreso vi (m/s)", 1000.0, 15000.0);
+    m->altInicial    = leerReal("Altura de reingreso hi (m)", 10000.0, 200000.0);
+    m->altParacaidas = leerReal("Altura de paracaidas hf (m)", 100.0, m->altInicial - 1);
+    m->velParacaidas = leerReal("Velocidad al abrir paracaidas vf (m/s)", 1.0, m->velInicial - 1);
+    m->velImpacto    = leerReal("Velocidad de impacto (m/s)", 0.1, m->velParacaidas);
+    m->tiempoFrenado = leerReal("Duracion del frenado (s)", 10.0, 3600.0);
+    m->profundidad   = leerReal("Hundimiento en el agua d (m)", 0.1, 10.0);
+    printf("\n  Datos cargados correctamente.\n");
+}
+
+/* Muestra los datos actuales (no modifica nada, solo lee) */
+void mostrarDatos(Mision *m)
+{
+    printf("\n--- DATOS ACTUALES DE LA MISION ---\n");
+    printf("  Masa ..................... %.1f kg\n", m->masa);
+    printf("  Velocidad de reingreso ... %.1f m/s (%.0f km/h)\n",
+           m->velInicial, m->velInicial * KMH_POR_MS);
+    printf("  Altura de reingreso ...... %.1f m\n", m->altInicial);
+    printf("  Velocidad paracaidas ..... %.1f m/s\n", m->velParacaidas);
+    printf("  Altura paracaidas ........ %.1f m\n", m->altParacaidas);
+    printf("  Velocidad de impacto ..... %.1f m/s\n", m->velImpacto);
+    printf("  Duracion del frenado ..... %.1f s\n", m->tiempoFrenado);
+    printf("  Hundimiento en el agua ... %.2f m\n", m->profundidad);
+}
+
+/* =====================================================================
+ *  3) CALCULOS FISICOS
+ * ===================================================================== */
+
+/* Energia cinetica: K = 1/2 * m * v^2 */
 double energiaCinetica(double masa, double velocidad)
 {
     return 0.5 * masa * velocidad * velocidad;
 }
 
+/*
+ * Resuelve los incisos a), b) y c).
+ *
+ * a) W_total = delta K   y   W_total = W_peso + W_roz
+ *    => W_roz = delta K - W_peso
+ *    con W_peso = m * g * (hi - hf)   (positivo porque la nave baja)
+ *
+ * b) a = (vi - vf) / tiempo
+ *
+ * c) En el agua: (m*g - F) * d = 0 - K_impacto
+ *    => F = m*g + K_impacto / d
+ */
 void calcularResultados(Mision *m)
 {
-    double desnivel;
-    double kImpacto;
+    double desnivel;     /* cuanto baja la nave: hi - hf */
+    double kImpacto;     /* energia cinetica al tocar el agua */
 
-
+    /* a) Trabajo del rozamiento */
     desnivel        = m->altInicial - m->altParacaidas;
     m->kInicial     = energiaCinetica(m->masa, m->velInicial);
     m->kFinal       = energiaCinetica(m->masa, m->velParacaidas);
@@ -94,18 +181,18 @@ void calcularResultados(Mision *m)
     m->trabajoPeso  = m->masa * GRAVEDAD * desnivel;
     m->trabajoRoz   = m->deltaK - m->trabajoPeso;
 
-    
+    /* b) Desaceleracion media */
     m->aMedia  = (m->velInicial - m->velParacaidas) / m->tiempoFrenado;
     m->aMediaG = m->aMedia / GRAVEDAD;
 
-    
+    /* c) Fuerza promedio en el amerizaje */
     m->peso       = m->masa * GRAVEDAD;
     kImpacto      = energiaCinetica(m->masa, m->velImpacto);
     m->fProm      = m->peso + kImpacto / m->profundidad;
     m->fPromPesos = m->fProm / m->peso;
 }
 
-
+/* Dice si el angulo esta dentro de la ventana de seguridad */
 int clasificarAngulo(double gamma)
 {
     int clase;
@@ -119,8 +206,9 @@ int clasificarAngulo(double gamma)
     }
     return clase;
 }
-void explicarAngulo(int clase)
 
+/* Inciso d): consecuencias fisicas segun el angulo */
+void explicarAngulo(int clase)
 {
     if (clase == ANGULO_EMPINADO) {
         printf("  gamma > %.1f grados: DESACELERACION EXCESIVA\n", GAMMA_MAX);
@@ -141,48 +229,10 @@ void explicarAngulo(int clase)
     }
 }
 
-void cargarDatosNominales(Mision *m)
-{
-    m->masa          = MASA_NOM;
-    m->velInicial    = VI_NOM;
-    m->altInicial    = HI_NOM;
-    m->velParacaidas = VF_NOM;
-    m->altParacaidas = HF_NOM;
-    m->velImpacto    = VIMPACTO_NOM;
-    m->tiempoFrenado = DT_NOM;
-    m->profundidad   = PROF_NOM;
-    m->gamma         = 6.0;
-    m->estado        = EXITO;
-    m->puntaje       = 0;
-}
+/* =====================================================================
+ *  4) ANALISIS ANALITICO (incisos a, b, c, d)
+ * ===================================================================== */
 
-void ingresarDatosPropios(Mision *m)
-{
-    printf("\n--- INGRESO DE DATOS PROPIOS (unidades del SI) ---\n");
-    m->masa          = leerReal("Masa (kg)", 1000.0, 100000.0);
-    m->velInicial    = leerReal("Velocidad de reingreso vi (m/s)", 1000.0, 15000.0);
-    m->altInicial    = leerReal("Altura de reingreso hi (m)", 10000.0, 200000.0);
-    m->altParacaidas = leerReal("Altura de paracaidas hf (m)", 100.0, m->altInicial - 1);
-    m->velParacaidas = leerReal("Velocidad al abrir paracaidas vf (m/s)", 1.0, m->velInicial - 1);
-    m->velImpacto    = leerReal("Velocidad de impacto (m/s)", 0.1, m->velParacaidas);
-    m->tiempoFrenado = leerReal("Duracion del frenado (s)", 10.0, 3600.0);
-    m->profundidad   = leerReal("Hundimiento en el agua d (m)", 0.1, 10.0);
-    printf("\n  Datos cargados correctamente.\n");
-}
-
-void mostrarDatos(Mision *m)
-{
-    printf("\n--- DATOS ACTUALES DE LA MISION ---\n");
-    printf("  Masa ..................... %.1f kg\n", m->masa);
-    printf("  Velocidad de reingreso ... %.1f m/s (%.0f km/h)\n",
-           m->velInicial, m->velInicial * KMH_POR_MS);
-    printf("  Altura de reingreso ...... %.1f m\n", m->altInicial);
-    printf("  Velocidad paracaidas ..... %.1f m/s\n", m->velParacaidas);
-    printf("  Altura paracaidas ........ %.1f m\n", m->altParacaidas);
-    printf("  Velocidad de impacto ..... %.1f m/s\n", m->velImpacto);
-    printf("  Duracion del frenado ..... %.1f s\n", m->tiempoFrenado);
-    printf("  Hundimiento en el agua ... %.2f m\n", m->profundidad);
-}
 void mostrarAnalisis(Mision *m)
 {
     double gamma;
@@ -218,6 +268,12 @@ void mostrarAnalisis(Mision *m)
     explicarAngulo(clase);
 }
 
+/* =====================================================================
+ *  5) LAS 4 FASES DEL JUEGO
+ *  Cada fase devuelve 1 si el jugador la supera y 0 si la mision falla.
+ * ===================================================================== */
+
+/* FASE 1: el jugador elige el angulo de reingreso */
 int faseAngulo(Mision *m)
 {
     int clase;
@@ -244,13 +300,11 @@ int faseAngulo(Mision *m)
     return superada;
 }
 
-
-F2
-
+/* FASE 2: frenado aerodinamico, se muestra una tabla de 10 turnos */
 int faseFrenado(Mision *m)
 {
-    double velocidad[N_TURNOS];
-    double tiempoMin;
+    double velocidad[N_TURNOS];    /* arreglo: velocidad al final de cada turno */
+    double tiempoMin;              /* tiempo minimo para no pasar el limite de g */
     double t;
     int i;
     int superada = 0;
@@ -266,7 +320,8 @@ int faseFrenado(Mision *m)
     m->tiempoFrenado = leerReal("Duracion del frenado (s)", 10.0, 3600.0);
     calcularResultados(m);
 
-        for (i = 0; i < N_TURNOS; i++) {
+    /* Calculamos la velocidad en cada turno: v = vi - a*t */
+    for (i = 0; i < N_TURNOS; i++) {
         t = m->tiempoFrenado * (i + 1) / N_TURNOS;
         velocidad[i] = m->velInicial - m->aMedia * t;
     }
@@ -294,9 +349,11 @@ int faseFrenado(Mision *m)
     return superada;
 }
 
+/* FASE 3: paracaidas. Se simula cuantos paracaidas principales abren */
 int faseParacaidas(Mision *m)
 {
-    
+    /* Arreglo de factores: el indice es la cantidad de paracaidas que abren.
+     * Con menos paracaidas, la nave llega al agua mas rapido. */
     double factor[4] = {0.0, 1.75, 1.25, 1.00};
     int abiertos;
 
@@ -316,7 +373,7 @@ int faseParacaidas(Mision *m)
     return 1;
 }
 
-
+/* FASE 4: amerizaje, se calcula la fuerza que hace el agua */
 int faseAmerizaje(Mision *m)
 {
     int superada = 0;
@@ -340,6 +397,11 @@ int faseAmerizaje(Mision *m)
     return superada;
 }
 
+/* =====================================================================
+ *  6) JUEGO COMPLETO Y REPORTE
+ * ===================================================================== */
+
+/* Juega las 4 fases en orden. Si una falla, las siguientes no se juegan. */
 void jugarMision(Mision *datos)
 {
     Mision partida;    /* copia de trabajo: asi no se pisan los datos originales */
@@ -367,6 +429,7 @@ void jugarMision(Mision *datos)
     mostrarReporte(&partida);
 }
 
+/* Reporte final de desempeno */
 void mostrarReporte(Mision *m)
 {
     printf("\n=========== REPORTE FINAL ===========\n");
@@ -406,6 +469,7 @@ void mostrarReporte(Mision *m)
            m->fProm, m->fPromPesos);
 }
 
+/* Reglas del juego */
 void mostrarReglas(void)
 {
     printf("\n=========== REGLAS DEL JUEGO ===========\n");
